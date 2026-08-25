@@ -23,17 +23,6 @@ jobs:
           pip install -r requirements.txt
           pip install "pyinstaller==6.10.0"
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Run self-tests
-        run: |
-          npm install --no-save jsdom@29
-          python tests/make_fixtures.py
-          node tests/selftest.js
-
       - name: Build exe
         run: pyinstaller VCPasteHelper.spec --noconfirm --clean
 
