@@ -1,0 +1,48 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install "pyinstaller==6.10.0"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run self-tests
+        run: |
+          npm install --no-save jsdom@29
+          python tests/make_fixtures.py
+          node tests/selftest.js
+
+      - name: Build exe
+        run: pyinstaller VCPasteHelper.spec --noconfirm --clean
+
+      - name: Zip result
+        shell: pwsh
+        run: Compress-Archive -Path 'dist/VC Paste Helper/*' -DestinationPath 'VC-Paste-Helper-Windows.zip'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: VC-Paste-Helper-Windows
+          path: VC-Paste-Helper-Windows.zip
